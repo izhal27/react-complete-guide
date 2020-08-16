@@ -17,21 +17,29 @@ const INGREDIENT_PRICES = {
 
 class BurgerBuilder extends Component {
   state = {
-    ingredients: {
-      salad: 0,
-      bacon: 0,
-      cheese: 0,
-      meat: 0,
-    },
+    ingredients: null,
     totalPrice: 4,
     purchasable: false,
     purchasing: false,
     loading: false,
+    error: null,
   };
 
-  updatePurchaseState = (ingredients) => {
+  async componentDidMount() {
+    try {
+      const res = await axios.get(
+        'https://react-my-burger-4a2d5.firebaseio.com/ingredients.json'
+      );
+
+      this.setState({ ingredients: res.data });
+    } catch (err) {
+      this.setState({ error: err });
+    }
+  }
+
+  updatePurchaseState = ingredients => {
     const sum = Object.keys(ingredients)
-      .map((igKey) => {
+      .map(igKey => {
         return ingredients[igKey];
       })
       .reduce((sum, el) => {
@@ -41,7 +49,7 @@ class BurgerBuilder extends Component {
     this.setState({ purchasable: sum > 0 });
   };
 
-  addIngredientHandler = (type) => {
+  addIngredientHandler = type => {
     const updateIngredients = {
       ...this.state.ingredients,
     };
@@ -57,7 +65,7 @@ class BurgerBuilder extends Component {
     this.updatePurchaseState(updateIngredients);
   };
 
-  removeIngredientHandler = (type) => {
+  removeIngredientHandler = type => {
     const updateIngredients = {
       ...this.state.ingredients,
     };
@@ -92,7 +100,7 @@ class BurgerBuilder extends Component {
 
     const order = {
       ingredients: this.state.ingredients,
-      price: this.state.totalPrice,
+      price: this.state.totalPrice.toFixed(2),
       customer: {
         name: 'Risal Wwalangadi',
         address: {
@@ -107,11 +115,11 @@ class BurgerBuilder extends Component {
 
     axios
       .post('/orders.json', order)
-      .then((res) => {
-        this.setState({ loading: false });
+      .then(res => {
+        this.setState({ loading: false, purchasing: false });
       })
-      .catch((err) => {
-        this.setState({ loading: false });
+      .catch(err => {
+        this.setState({ loading: false, purchasing: false });
       });
   };
 
@@ -120,18 +128,39 @@ class BurgerBuilder extends Component {
     for (const key in disabledInfo) {
       disabledInfo[key] = disabledInfo[key] === 0;
     }
-
-    let orderSummary = (
-      <OrderSummary
-        purchaseCancelled={this.purchaseCancelHandler}
-        purchaseContinued={this.purchaseContinueHandler}
-        ingredients={this.state.ingredients}
-        price={this.state.totalPrice}
-      />
+    let orderSummary;
+    let burger = this.state.error ? (
+      <p>Ingredients can't be loaded...</p>
+    ) : (
+      <Spinner />
     );
 
-    if (this.state.loading) {
-      orderSummary = <Spinner />;
+    if (this.state.ingredients) {
+      burger = (
+        <>
+          <Burger ingredients={this.state.ingredients} />
+          <BuildControls
+            ingredientAdded={this.addIngredientHandler}
+            ingredientRemoved={this.removeIngredientHandler}
+            disabled={disabledInfo}
+            price={this.state.totalPrice}
+            purchasable={this.state.purchasable}
+            ordered={this.purchaseHandler}
+          />
+        </>
+      );
+      orderSummary = (
+        <OrderSummary
+          purchaseCancelled={this.purchaseCancelHandler}
+          purchaseContinued={this.purchaseContinueHandler}
+          ingredients={this.state.ingredients}
+          price={this.state.totalPrice}
+        />
+      );
+
+      if (this.state.loading) {
+        orderSummary = <Spinner />;
+      }
     }
 
     return (
@@ -142,15 +171,7 @@ class BurgerBuilder extends Component {
         >
           {orderSummary}
         </Modal>
-        <Burger ingredients={this.state.ingredients} />
-        <BuildControls
-          ingredientAdded={this.addIngredientHandler}
-          ingredientRemoved={this.removeIngredientHandler}
-          disabled={disabledInfo}
-          price={this.state.totalPrice}
-          purchasable={this.state.purchasable}
-          ordered={this.purchaseHandler}
-        />
+        {burger}
       </>
     );
   }
