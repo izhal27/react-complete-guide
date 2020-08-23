@@ -2,11 +2,12 @@ import React, { Component } from 'react';
 
 import Burger from '../../components/Burger/Burger';
 import BuildControls from '../../components/Burger/BuildControls/BuildControls';
+import axios from '../../axios-orders';
+import withErrorHandler from '../../components/hoc/withErrorHandler/withErrorHandler';
+
 import Modal from '../../components/UI/Modal/Modal';
 import OrderSummary from '../../components/Burger/OrderSummary/OrderSummary';
-import axios from '../../axios-orders';
 import Spinner from '../../components/UI/Spinner/Spinner';
-import withErrorHandler from '../../components/hoc/withErrorHandler/withErrorHandler';
 
 const INGREDIENT_PRICES = {
   salad: 0.5,
@@ -96,31 +97,18 @@ class BurgerBuilder extends Component {
   };
 
   purchaseContinueHandler = () => {
-    this.setState({ loading: true });
+    const queryParams = [];
+    for (const i in this.state.ingredients) {
+      const key = encodeURIComponent(i);
+      const value = encodeURIComponent(this.state.ingredients[i]);
+      queryParams.push(`${key}=${value}`);
+    }
+    queryParams.push('price=' + this.state.totalPrice);
 
-    const order = {
-      ingredients: this.state.ingredients,
-      price: this.state.totalPrice.toFixed(2),
-      customer: {
-        name: 'Risal Wwalangadi',
-        address: {
-          street: 'Jl. Madura, 39',
-          zipCode: '96127',
-          country: 'Indonesia',
-        },
-        email: 'risal.gooner@arsenal.com',
-      },
-      deliveryMethod: 'fastest',
-    };
-
-    axios
-      .post('/orders.json', order)
-      .then(res => {
-        this.setState({ loading: false, purchasing: false });
-      })
-      .catch(err => {
-        this.setState({ loading: false, purchasing: false });
-      });
+    this.props.history.push({
+      pathname: '/checkout',
+      search: `?${queryParams.join('&')}`,
+    });
   };
 
   render() {
