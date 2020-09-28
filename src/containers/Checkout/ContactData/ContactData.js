@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
 
 import styles from './ContactData.module.css';
 import Button from '../../../components/UI/Button/Button';
@@ -6,6 +7,7 @@ import axios from '../../../axios-orders';
 import withErrorHandler from '../../../components/hoc/withErrorHandler/withErrorHandler';
 import Spinner from '../../../components/UI/Spinner/Spinner';
 import Input from '../../../components/UI/Input/Input';
+import * as actionTypes from '../../../store/actions';
 
 class ContactData extends Component {
   state = {
@@ -84,6 +86,9 @@ class ContactData extends Component {
           ],
         },
         value: 'fastest',
+        validation: {
+          required: true,
+        },
       },
     },
     loading: false,
@@ -99,8 +104,8 @@ class ContactData extends Component {
     }
 
     const order = {
-      ingredients: this.props.ingredients,
-      price: this.props.totalPrice.toFixed(2),
+      ingredients: this.props.ings,
+      price: this.props.price.toFixed(2),
       orderData: formData,
     };
 
@@ -141,13 +146,11 @@ class ContactData extends Component {
     );
     updatedFormElement.touched = true;
     updatedOrderForm[elementIdentifier] = updatedFormElement;
-    console.log(updatedFormElement);
     this.setState({ orderForm: updatedOrderForm });
   };
 
   render() {
     const formElementsArray = [];
-    console.log(this.state);
     for (const key in this.state.orderForm) {
       formElementsArray.push({
         id: key,
@@ -184,4 +187,16 @@ class ContactData extends Component {
   }
 }
 
-export default withErrorHandler(ContactData, axios);
+const mapStateToPros = state => {
+  return { ings: state.ingredients, price: state.totalPrice };
+};
+
+const mapDispatchToProps = dispatch => {
+  return {
+    onSuccessOrdered: dispatch({ type: actionTypes.RESET_INGREDIENT }),
+  };
+};
+
+export default connect(
+  mapStateToPros
+)(withErrorHandler(ContactData, axios));
