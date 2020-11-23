@@ -11,6 +11,7 @@ const initialState = {
   ingredients: null,
   totalPrice: 4,
   error: false,
+  building: false,
 };
 
 const setIngredients = (state, { payload }) => {
@@ -23,6 +24,7 @@ const setIngredients = (state, { payload }) => {
       meat: payload.meat,
     },
     totalPrice: 4,
+    building: false,
   };
 };
 
@@ -34,6 +36,7 @@ const addIngredient = (state, { payload }) => {
       [payload]: state.ingredients[payload] + 1,
     },
     totalPrice: state.totalPrice + INGREDIENT_PRICES[payload],
+    building: true,
   };
 };
 
@@ -45,6 +48,7 @@ const removeIngredient = (state, { payload }) => {
       [payload]: state.ingredients[payload] - 1,
     },
     totalPrice: state.totalPrice - INGREDIENT_PRICES[payload],
+    building: true,
   };
 };
 

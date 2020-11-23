@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
 
 import styles from './Layout.module.css';
 import Toolbar from '../../Navigation/Toolbar/Toolbar';
@@ -14,7 +15,7 @@ class Layout extends Component {
   };
 
   sideDrawerToggleHandler = () => {
-    this.setState((prevState) => ({
+    this.setState(prevState => ({
       showSideDrawer: !prevState.showSideDrawer,
     }));
   };
@@ -22,9 +23,13 @@ class Layout extends Component {
   render() {
     return (
       <>
-        <Toolbar drawerToggleClicked={this.sideDrawerToggleHandler} />
+        <Toolbar
+          drawerToggleClicked={this.sideDrawerToggleHandler}
+          isAuth={this.props.isAuthenticated}
+        />
         <SideDrawer
           open={this.state.showSideDrawer}
+          isAuth={this.props.isAuthenticated}
           closed={this.sideDrawerClosedHandler}
         />
         <main className={styles.Content}>{this.props.children}</main>
@@ -33,4 +38,10 @@ class Layout extends Component {
   }
 }
 
-export default Layout;
+const mapStateToProps = state => {
+  return {
+    isAuthenticated: state.auth.token != null,
+  };
+};
+
+export default connect(mapStateToProps)(Layout);

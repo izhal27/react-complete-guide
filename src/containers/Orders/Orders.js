@@ -9,12 +9,18 @@ import * as actions from '../../store/actions/index';
 
 class Orders extends Component {
   async componentDidMount() {
-    this.props.onFetchOrders();
+    this.props.onFetchOrders(this.props.token, this.props.userId);
   }
 
   render() {
     let orders = null;
-    if (this.props.orders.length) {
+    if (!this.props.token) {
+      orders = (
+        <h1 style={{ textAlign: 'center' }}>
+          You don't have permission to access this page.
+        </h1>
+      );
+    } else if (this.props.orders.length) {
       orders = this.props.orders.map(order => (
         <Order
           key={order.id}
@@ -36,14 +42,22 @@ class Orders extends Component {
 }
 
 const mapStateToProps = state => {
+  const { orders, loading } = state.order;
+  const { token, userId } = state.auth;
+
   return {
-    orders: state.order.orders,
-    loading: state.order.loading,
+    orders,
+    loading,
+    token,
+    userId,
   };
 };
 
 const mapDispatchToProps = dispatch => {
-  return { onFetchOrders: () => dispatch(actions.fetchOrders()) };
+  return {
+    onFetchOrders: (token, userId) =>
+      dispatch(actions.fetchOrders(token, userId)),
+  };
 };
 
 export default connect(

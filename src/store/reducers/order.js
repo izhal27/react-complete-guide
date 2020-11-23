@@ -4,12 +4,14 @@ const initialState = {
   orders: [],
   loading: false,
   purchased: false,
+  error: null,
 };
 
 const purchaseInit = state => {
   return {
     ...state,
     purchased: false,
+    error: null,
   };
 };
 
@@ -17,6 +19,7 @@ const purchaseBurgerStart = state => {
   return {
     ...state,
     loading: true,
+    error: null,
   };
 };
 
@@ -29,10 +32,11 @@ const purchaseBurgerSuccess = (state, { orderData, orderId }) => {
   };
 };
 
-const purchaseBurgerFail = state => {
+const purchaseBurgerFail = (state, { error }) => {
   return {
     ...state,
     loading: false,
+    error,
   };
 };
 
@@ -40,6 +44,7 @@ const fetchOrdersStart = state => {
   return {
     ...state,
     loading: true,
+    error: null,
   };
 };
 
@@ -51,8 +56,8 @@ const fetchOrdersSuccess = (state, { orders }) => {
   };
 };
 
-const fetchOrdersFail = state => {
-  return { ...state, loading: false };
+const fetchOrdersFail = (state, { error }) => {
+  return { ...state, loading: false, error };
 };
 
 const reducer = (state = initialState, action) => {
@@ -66,13 +71,13 @@ const reducer = (state = initialState, action) => {
     case actionTypes.PURCHASE_BURGER_SUCCESS:
       return purchaseBurgerSuccess(state, action);
     case actionTypes.PURCHASE_BURGER_FAIL:
-      return purchaseBurgerFail(state);
+      return purchaseBurgerFail(state, action);
     case actionTypes.FETCH_ORDERS_START:
       return fetchOrdersStart(state);
     case actionTypes.FETCH_ORDERS_SUCCESS:
       return fetchOrdersSuccess(state, action);
     case actionTypes.FETCH_ORDERS_FAIL:
-      return fetchOrdersFail(state);
+      return fetchOrdersFail(state, action);
     default:
       return state;
   }
