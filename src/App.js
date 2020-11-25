@@ -1,15 +1,12 @@
-import React, { Component } from 'react';
+import React, { Component, Suspense, lazy } from 'react';
 import { Redirect, Route, Switch } from 'react-router-dom';
 import { connect } from 'react-redux';
 
 import './App.css';
 import Layout from './components/hoc/Layout/Layout';
 import BurgerBuilder from './containers/BurgerBuilder/BurgerBuilder';
-import Checkout from './containers/Checkout/Checkout';
-import Orders from './containers/Orders/Orders';
-import Auth from './containers/Auth/Auth';
-import Logout from './containers/Auth/Logout/Logout';
 import * as actions from './store/actions/index';
+import Spinner from './components/UI/Spinner/Spinner';
 
 class App extends Component {
   componentDidMount() {
@@ -17,6 +14,11 @@ class App extends Component {
   }
 
   render() {
+    const Auth = lazy(() => import('./containers/Auth/Auth'));
+    const Checkout = lazy(() => import('./containers/Checkout/Checkout'));
+    const Orders = lazy(() => import('./containers/Orders/Orders'));
+    const Logout = lazy(() => import('./containers/Auth/Logout/Logout'));
+
     let routes = (
       <Switch>
         <Route path="/auth" component={Auth} />
@@ -30,6 +32,7 @@ class App extends Component {
         <Switch>
           <Route path="/checkout" component={Checkout} />
           <Route path="/orders" component={Orders} />
+          <Route path="/auth" component={Auth} />
           <Route path="/logout" component={Logout} />
           <Route path="/" exact component={BurgerBuilder} />
           <Redirect to="/" />
@@ -37,7 +40,11 @@ class App extends Component {
       );
     }
 
-    return <Layout>{routes}</Layout>;
+    return (
+      <Layout>
+        <Suspense fallback={<Spinner />}>{routes}</Suspense>
+      </Layout>
+    );
   }
 }
 
